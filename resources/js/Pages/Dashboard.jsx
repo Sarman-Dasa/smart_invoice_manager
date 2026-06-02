@@ -1,71 +1,180 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import DashboardCard from '@/Components/DashboardCard';
 
-export default function Dashboard({ stats }) {
+export default function Dashboard({ stats, recentInvoices, recentReminders }) {
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="h4 fw-semibold mb-0">Dashboard</h2>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title="Dashboard" />
 
-            <div className="row g-4 mt-2">
-                {/* Clients Card */}
-                <div className="col-12 col-md-6 col-xl-4">
+            <div className="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
+                <div>
+                    <h2 className="h3 fw-bold mb-1">Dashboard</h2>
+                    <p className="text-muted mb-0">Overview of your invoicing operations.</p>
+                </div>
+                <div className="d-flex flex-wrap gap-2">
+                    <Link href={route('clients.create')} className="btn btn-outline-primary d-flex align-items-center gap-2">
+                        <i className="bi bi-person-plus"></i>
+                        <span className="d-none d-sm-inline">New Client</span>
+                    </Link>
+                    <Link href={route('invoices.create')} className="btn btn-primary d-flex align-items-center gap-2">
+                        <i className="bi bi-file-earmark-plus"></i>
+                        <span className="d-none d-sm-inline">Create Invoice</span>
+                    </Link>
+                    <Link href={route('invoices.index')} className="btn btn-dark d-flex align-items-center gap-2 shadow-sm">
+                        <i className="bi bi-robot"></i>
+                        <span className="d-none d-sm-inline">Generate Reminder</span>
+                    </Link>
+                </div>
+            </div>
+
+            {/* Statistics Cards */}
+            <div className="row g-4 mb-5">
+                <div className="col-12 col-sm-6 col-xl-3">
+                    <DashboardCard 
+                        title="Total Clients" 
+                        value={stats.clients.total} 
+                        icon="bi-people"
+                        linkText="View All Clients"
+                        linkHref={route('clients.index')}
+                    />
+                </div>
+                <div className="col-12 col-sm-6 col-xl-3">
+                    <DashboardCard 
+                        title="Total Invoices" 
+                        value={stats.invoices.total} 
+                        icon="bi-receipt"
+                        color="info"
+                        linkText="View All Invoices"
+                        linkHref={route('invoices.index')}
+                    />
+                </div>
+                <div className="col-12 col-sm-6 col-xl-3">
+                    <DashboardCard 
+                        title="Paid Invoices" 
+                        value={stats.invoices.paid} 
+                        icon="bi-check-circle"
+                        color="success"
+                    />
+                </div>
+                <div className="col-12 col-sm-6 col-xl-3">
+                    <DashboardCard 
+                        title="Overdue Invoices" 
+                        value={stats.invoices.overdue} 
+                        icon="bi-exclamation-triangle"
+                        color="danger"
+                        isDanger={true}
+                        highlightMessage={stats.invoices.overdue > 0 ? 'Requires attention' : null}
+                    />
+                </div>
+            </div>
+
+            {/* Data Tables */}
+            <div className="row g-4">
+                {/* Recent Invoices */}
+                <div className="col-12 col-xl-6">
                     <div className="card shadow-sm border-0 h-100">
-                        <div className="card-body">
-                            <h6 className="text-muted text-uppercase fw-semibold mb-2">Total Clients</h6>
-                            <h2 className="display-6 fw-bold mb-3">{stats.clients.total}</h2>
-                            <Link href={route('clients.index')} className="text-decoration-none btn btn-sm btn-outline-primary">
-                                View Clients &rarr;
-                            </Link>
+                        <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0 fw-bold">Recent Invoices</h5>
+                            <Link href={route('invoices.index')} className="btn btn-sm btn-light">View All</Link>
                         </div>
-                    </div>
-                </div>
-
-                {/* Total Invoices */}
-                <div className="col-12 col-md-6 col-xl-4">
-                    <div className="card shadow-sm border-0 h-100">
-                        <div className="card-body">
-                            <h6 className="text-muted text-uppercase fw-semibold mb-2">Total Invoices</h6>
-                            <h2 className="display-6 fw-bold mb-3">{stats.invoices.total}</h2>
-                            <Link href={route('invoices.index')} className="text-decoration-none btn btn-sm btn-outline-primary">
-                                View Invoices &rarr;
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Pending Invoices */}
-                <div className="col-12 col-md-4 col-xl-4">
-                    <div className="card shadow-sm border-0 border-start border-warning border-4 h-100">
-                        <div className="card-body">
-                            <h6 className="text-muted text-uppercase fw-semibold mb-2">Pending Invoices</h6>
-                            <h2 className="display-6 fw-bold text-warning mb-0">{stats.invoices.pending}</h2>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Overdue Invoices */}
-                <div className="col-12 col-md-4 col-xl-6">
-                    <div className="card shadow-sm border-0 border-start border-danger border-4 h-100 bg-danger bg-opacity-10">
-                        <div className="card-body">
-                            <h6 className="text-danger text-uppercase fw-semibold mb-2">Overdue Invoices</h6>
-                            <h2 className="display-6 fw-bold text-danger mb-0">{stats.invoices.overdue}</h2>
-                            {stats.invoices.overdue > 0 && (
-                                <small className="text-danger d-block mt-2 fw-medium">Requires immediate attention!</small>
+                        <div className="card-body p-0">
+                            {recentInvoices.length > 0 ? (
+                                <div className="table-responsive">
+                                    <table className="table table-hover align-middle mb-0">
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th className="px-3 border-0">Invoice #</th>
+                                                <th className="border-0">Client</th>
+                                                <th className="border-0">Amount</th>
+                                                <th className="border-0">Status</th>
+                                                <th className="px-3 border-0 text-end">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {recentInvoices.map((invoice) => (
+                                                <tr key={invoice.id}>
+                                                    <td className="px-3 fw-medium">{invoice.invoice_number}</td>
+                                                    <td>{invoice.client.company_name}</td>
+                                                    <td>${parseFloat(invoice.amount).toFixed(2)}</td>
+                                                    <td>
+                                                        <span className={`badge bg-${invoice.status === 'Paid' ? 'success' : invoice.status === 'Overdue' ? 'danger' : 'warning text-dark'}`}>
+                                                            {invoice.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 text-end">
+                                                        <Link href={route('invoices.show', invoice.id)} className="btn btn-sm btn-outline-secondary">
+                                                            View
+                                                        </Link>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="p-4 text-center text-muted">
+                                    <i className="bi bi-inbox fs-2 mb-2 d-block text-secondary"></i>
+                                    No invoices created yet.
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Paid Invoices */}
-                <div className="col-12 col-md-4 col-xl-6">
-                    <div className="card shadow-sm border-0 border-start border-success border-4 h-100">
-                        <div className="card-body">
-                            <h6 className="text-muted text-uppercase fw-semibold mb-2">Paid Invoices</h6>
-                            <h2 className="display-6 fw-bold text-success mb-0">{stats.invoices.paid}</h2>
+                {/* Recent AI Activity */}
+                <div className="col-12 col-xl-6">
+                    <div className="card shadow-sm border-0 h-100">
+                        <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0 fw-bold">Recent AI Reminders</h5>
+                            <Link href={route('reminders.index')} className="btn btn-sm btn-light">View History</Link>
+                        </div>
+                        <div className="card-body p-0">
+                            {recentReminders.length > 0 ? (
+                                <div className="table-responsive">
+                                    <table className="table table-hover align-middle mb-0">
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th className="px-3 border-0">Invoice</th>
+                                                <th className="border-0">Generated</th>
+                                                <th className="border-0">Status</th>
+                                                <th className="px-3 border-0 text-end">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {recentReminders.map((log) => (
+                                                <tr key={log.id}>
+                                                    <td className="px-3">
+                                                        <Link href={route('invoices.show', log.invoice_id)} className="text-decoration-none fw-medium">
+                                                            {log.invoice.invoice_number}
+                                                        </Link>
+                                                    </td>
+                                                    <td className="text-muted small">
+                                                        {new Date(log.created_at).toLocaleDateString()}
+                                                    </td>
+                                                    <td>
+                                                        {log.sent_at ? (
+                                                            <span className="badge bg-success bg-opacity-10 text-success border border-success">Sent</span>
+                                                        ) : (
+                                                            <span className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">Draft</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 text-end">
+                                                        <Link href={route('invoices.reminders.edit', [log.invoice_id, log.id])} className="btn btn-sm btn-outline-primary">
+                                                            Review
+                                                        </Link>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="p-4 text-center text-muted">
+                                    <i className="bi bi-robot fs-2 mb-2 d-block text-secondary"></i>
+                                    No AI reminders generated recently.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

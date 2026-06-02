@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import Breadcrumb from '@/Components/Breadcrumb';
 import { useState } from 'react';
 
 export default function Index({ clients, filters }) {
@@ -11,19 +12,23 @@ export default function Index({ clients, filters }) {
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <div className="d-flex justify-content-between align-items-center">
-                    <h2 className="h4 fw-semibold mb-0">Clients</h2>
-                    <Link href={route('clients.create')} className="btn btn-primary">
-                        + Add Client
-                    </Link>
-                </div>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title="Clients" />
 
-            <div className="card shadow-sm border-0 mt-4">
+            <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <Breadcrumb items={[
+                        { label: 'Dashboard', href: route('dashboard') },
+                        { label: 'Clients' }
+                    ]} />
+                    <h2 className="h3 fw-bold mb-0">Clients</h2>
+                </div>
+                <Link href={route('clients.create')} className="btn btn-primary d-flex align-items-center gap-2">
+                    <i className="bi bi-person-plus"></i> Add Client
+                </Link>
+            </div>
+
+            <div className="card shadow-sm border-0">
                 <div className="card-body">
                     <form onSubmit={handleSearch} className="mb-4 d-flex" style={{ maxWidth: '400px' }}>
                         <input

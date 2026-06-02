@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
+import Breadcrumb from '@/Components/Breadcrumb';
 import InvoiceForm from '@/Components/Invoices/InvoiceForm';
 
 export default function Edit({ invoice, clients }) {
@@ -24,19 +25,24 @@ export default function Edit({ invoice, clients }) {
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <div className="d-flex justify-content-between align-items-center">
-                    <h2 className="h4 fw-semibold mb-0">Edit Invoice: {invoice.invoice_number}</h2>
-                    <Link href={route('invoices.index')} className="btn btn-outline-secondary btn-sm">
-                        Back to Invoices
-                    </Link>
-                </div>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title={`Edit Invoice - ${invoice.invoice_number}`} />
 
-            <div className="card shadow-sm border-0 mt-4">
+            <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <Breadcrumb items={[
+                        { label: 'Dashboard', href: route('dashboard') },
+                        { label: 'Invoices', href: route('invoices.index') },
+                        { label: 'Edit Invoice' }
+                    ]} />
+                    <h2 className="h3 fw-bold mb-0">Edit Invoice: {invoice.invoice_number}</h2>
+                </div>
+                <Link href={route('invoices.index')} className="btn btn-outline-secondary d-flex align-items-center gap-2">
+                    <i className="bi bi-arrow-left"></i> Back
+                </Link>
+            </div>
+
+            <div className="card shadow-sm border-0">
                 <div className="card-body p-4">
                     <InvoiceForm 
                         data={data}

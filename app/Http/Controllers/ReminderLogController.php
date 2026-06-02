@@ -10,6 +10,25 @@ use Inertia\Inertia;
 class ReminderLogController extends Controller
 {
     /**
+     * Display a global listing of the resource for all invoices of the user.
+     */
+    public function globalIndex(Request $request)
+    {
+        $user = $request->user();
+        
+        $reminders = ReminderLog::whereHas('invoice', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->with('invoice.client')
+        ->latest()
+        ->paginate(15);
+
+        return Inertia::render('Reminders/GlobalIndex', [
+            'reminders' => $reminders,
+        ]);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request, Invoice $invoice)

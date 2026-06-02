@@ -2,67 +2,67 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import Breadcrumb from '@/Components/Breadcrumb';
 
-export default function Index({ invoice, reminders }) {
+export default function GlobalIndex({ reminders }) {
     return (
         <AuthenticatedLayout>
-            <Head title={`Reminders - ${invoice.invoice_number}`} />
+            <Head title="Reminder History" />
 
             <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                 <div>
                     <Breadcrumb items={[
                         { label: 'Dashboard', href: route('dashboard') },
-                        { label: 'Invoices', href: route('invoices.index') },
-                        { label: `Invoice ${invoice.invoice_number}`, href: route('invoices.show', invoice.id) || '#' },
-                        { label: 'Reminders' }
+                        { label: 'Reminder History' }
                     ]} />
-                    <h2 className="h3 fw-bold mb-1">Reminders History</h2>
-                    <p className="text-muted mb-0">Invoice: {invoice.invoice_number}</p>
+                    <h2 className="h3 fw-bold mb-1">Global Reminder History</h2>
+                    <p className="text-muted mb-0">Overview of all generated AI reminders.</p>
                 </div>
-                <Link href={route('invoices.index')} className="btn btn-outline-secondary d-flex align-items-center gap-2">
-                    <i className="bi bi-arrow-left"></i> Back
-                </Link>
             </div>
 
             <div className="card shadow-sm border-0">
-                <div className="card-body">
+                <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table table-hover align-middle">
+                        <table className="table table-hover align-middle mb-0">
                             <thead className="table-light">
                                 <tr>
-                                    <th>Created At</th>
-                                    <th>Preview</th>
-                                    <th>Status</th>
-                                    <th className="text-end">Actions</th>
+                                    <th className="px-3 border-0">Generated On</th>
+                                    <th className="border-0">Invoice #</th>
+                                    <th className="border-0">Client</th>
+                                    <th className="border-0">Status</th>
+                                    <th className="px-3 border-0 text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {reminders.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="text-center py-4 text-muted">
-                                            No reminder logs found for this invoice.
+                                        <td colSpan="5" className="text-center py-5 text-muted">
+                                            <i className="bi bi-clock-history fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                                            No reminder logs found.
                                         </td>
                                     </tr>
                                 ) : (
                                     reminders.data.map((reminder) => (
                                         <tr key={reminder.id}>
-                                            <td>{new Date(reminder.created_at).toLocaleString()}</td>
-                                            <td className="text-truncate" style={{ maxWidth: '300px' }}>
-                                                {reminder.content}
+                                            <td className="px-3">{new Date(reminder.created_at).toLocaleString()}</td>
+                                            <td>
+                                                <Link href={route('invoices.show', reminder.invoice.id)} className="text-decoration-none fw-medium">
+                                                    {reminder.invoice.invoice_number}
+                                                </Link>
                                             </td>
+                                            <td>{reminder.invoice.client?.company_name || reminder.invoice.client?.name || '-'}</td>
                                             <td>
                                                 {reminder.sent_at ? (
-                                                    <span className="badge bg-success">
-                                                        Sent ({new Date(reminder.sent_at).toLocaleString()})
+                                                    <span className="badge bg-success bg-opacity-10 text-success border border-success">
+                                                        Sent ({new Date(reminder.sent_at).toLocaleDateString()})
                                                     </span>
                                                 ) : (
-                                                    <span className="badge bg-warning text-dark">Draft</span>
+                                                    <span className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">Draft</span>
                                                 )}
                                             </td>
-                                            <td className="text-end">
+                                            <td className="px-3 text-end">
                                                 {!reminder.sent_at && (
                                                     <>
                                                         <Link 
-                                                            href={route('invoices.reminders.send', [invoice.id, reminder.id])} 
+                                                            href={route('invoices.reminders.send', [reminder.invoice.id, reminder.id])} 
                                                             method="post"
                                                             as="button"
                                                             className="btn btn-sm btn-success me-2"
@@ -70,7 +70,7 @@ export default function Index({ invoice, reminders }) {
                                                             Send Email
                                                         </Link>
                                                         <Link 
-                                                            href={route('invoices.reminders.edit', [invoice.id, reminder.id])} 
+                                                            href={route('invoices.reminders.edit', [reminder.invoice.id, reminder.id])} 
                                                             className="btn btn-sm btn-outline-primary me-2"
                                                         >
                                                             Edit
@@ -78,7 +78,7 @@ export default function Index({ invoice, reminders }) {
                                                     </>
                                                 )}
                                                 <Link 
-                                                    href={route('invoices.reminders.destroy', [invoice.id, reminder.id])} 
+                                                    href={route('invoices.reminders.destroy', [reminder.invoice.id, reminder.id])} 
                                                     method="delete"
                                                     as="button"
                                                     className="btn btn-sm btn-outline-danger"
@@ -97,7 +97,27 @@ export default function Index({ invoice, reminders }) {
                             </tbody>
                         </table>
                     </div>
-                    {/* Pagination can be added here if needed */}
+                    
+                    {reminders.links && reminders.links.length > 3 && (
+                        <div className="p-3 border-top">
+                            <nav>
+                                <ul className="pagination justify-content-center mb-0">
+                                    {reminders.links.map((link, key) => (
+                                        <li 
+                                            key={key} 
+                                            className={`page-item ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}`}
+                                        >
+                                            <Link 
+                                                className="page-link" 
+                                                href={link.url || '#'}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            </nav>
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

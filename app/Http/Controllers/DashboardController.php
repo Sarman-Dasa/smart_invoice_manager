@@ -25,6 +25,20 @@ class DashboardController extends Controller
 
         $totalClients = $user->clients()->count();
 
+        $recentInvoices = $user->invoices()
+            ->with('client')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $recentReminders = \App\Models\ReminderLog::whereHas('invoice', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with('invoice.client')
+            ->latest()
+            ->take(5)
+            ->get();
+
         return Inertia::render('Dashboard', [
             'stats' => [
                 'clients' => [
@@ -36,7 +50,9 @@ class DashboardController extends Controller
                     'overdue' => (int) ($invoiceStats->overdue ?? 0),
                     'pending' => (int) ($invoiceStats->pending ?? 0),
                 ]
-            ]
+            ],
+            'recentInvoices' => $recentInvoices,
+            'recentReminders' => $recentReminders,
         ]);
     }
 }

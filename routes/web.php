@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
     // AI Routes
     Route::get('invoices/{invoice}/ai/stream-reminder', [\App\Http\Controllers\AiController::class, 'streamReminder'])->name('ai.stream-reminder');
     
+    // Global Reminders
+    Route::get('reminders', [\App\Http\Controllers\ReminderLogController::class, 'globalIndex'])->name('reminders.index');
+    
     Route::post('invoices/{invoice}/reminders/{reminder}/send', [\App\Http\Controllers\ReminderLogController::class, 'send'])->name('invoices.reminders.send');
     Route::resource('invoices.reminders', \App\Http\Controllers\ReminderLogController::class)->except(['create', 'store', 'show']);
 });
