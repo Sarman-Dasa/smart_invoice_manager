@@ -25,6 +25,12 @@ Route::middleware('auth')->group(function () {
     
     Route::post('invoices/{invoice}/mark-as-paid', [\App\Http\Controllers\InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
+    
+    // AI Routes
+    Route::get('invoices/{invoice}/ai/stream-reminder', [\App\Http\Controllers\AiController::class, 'streamReminder'])->name('ai.stream-reminder');
+    
+    Route::post('invoices/{invoice}/reminders/{reminder}/send', [\App\Http\Controllers\ReminderLogController::class, 'send'])->name('invoices.reminders.send');
+    Route::resource('invoices.reminders', \App\Http\Controllers\ReminderLogController::class)->except(['create', 'store', 'show']);
 });
 
 require __DIR__.'/auth.php';

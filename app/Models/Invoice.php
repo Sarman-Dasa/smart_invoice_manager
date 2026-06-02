@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'client_id',
         'issue_date',
@@ -66,5 +68,10 @@ class Invoice extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function reminderLogs()
+    {
+        return $this->hasMany(ReminderLog::class);
     }
 }

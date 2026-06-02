@@ -1,9 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import GenerateReminderModal from '@/Components/Invoices/GenerateReminderModal';
 
 export default function Index({ invoices, filters }) {
     const [search, setSearch] = useState(filters.search || '');
+    const [aiModalInvoice, setAiModalInvoice] = useState(null);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -87,6 +89,20 @@ export default function Index({ invoices, filters }) {
                                                         Mark Paid
                                                     </button>
                                                 )}
+                                                {invoice.status !== 'Paid' && (
+                                                    <button 
+                                                        onClick={() => setAiModalInvoice(invoice)} 
+                                                        className="btn btn-sm btn-dark me-2 shadow-sm"
+                                                    >
+                                                        ✨ AI Draft
+                                                    </button>
+                                                )}
+                                                <Link 
+                                                    href={route('invoices.reminders.index', invoice.id)} 
+                                                    className="btn btn-sm btn-outline-secondary me-2"
+                                                >
+                                                    Reminders
+                                                </Link>
                                                 <Link 
                                                     href={route('invoices.edit', invoice.id)} 
                                                     className="btn btn-sm btn-outline-primary me-2"
@@ -134,6 +150,14 @@ export default function Index({ invoices, filters }) {
                     )}
                 </div>
             </div>
+
+            {aiModalInvoice && (
+                <GenerateReminderModal
+                    invoice={aiModalInvoice}
+                    show={!!aiModalInvoice}
+                    onClose={() => setAiModalInvoice(null)}
+                />
+            )}
         </AuthenticatedLayout>
     );
 }
