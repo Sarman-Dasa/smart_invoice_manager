@@ -1,8 +1,23 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import Breadcrumb from '@/Components/Breadcrumb';
+import ConfirmModal from '@/Components/ConfirmModal';
+import { useState } from 'react';
 
 export default function Index({ invoice, reminders }) {
+    const [confirmState, setConfirmState] = useState({ isOpen: false, reminderId: null });
+
+    const handleDeleteClick = (reminderId) => {
+        setConfirmState({ isOpen: true, reminderId });
+    };
+
+    const handleConfirmDelete = () => {
+        if (confirmState.reminderId) {
+            router.delete(route('invoices.reminders.destroy', [invoice.id, confirmState.reminderId]), {
+                onFinish: () => setConfirmState({ isOpen: false, reminderId: null }),
+            });
+        }
+    };
     return (
         <AuthenticatedLayout>
             <Head title={`Reminders - ${invoice.invoice_number}`} />
@@ -12,7 +27,7 @@ export default function Index({ invoice, reminders }) {
                     <Breadcrumb items={[
                         { label: 'Dashboard', href: route('dashboard') },
                         { label: 'Invoices', href: route('invoices.index') },
-                        { label: `Invoice ${invoice.invoice_number}`, href: route('invoices.show', invoice.id) || '#' },
+                        { label: `Invoice ${invoice.invoice_number}`, href: route('invoices.edit', invoice.id) },
                         { label: 'Reminders' }
                     ]} />
                     <h2 className="h3 fw-bold mb-1">Reminders History</h2>
@@ -77,19 +92,12 @@ export default function Index({ invoice, reminders }) {
                                                         </Link>
                                                     </>
                                                 )}
-                                                <Link 
-                                                    href={route('invoices.reminders.destroy', [invoice.id, reminder.id])} 
-                                                    method="delete"
-                                                    as="button"
+                                                <button
                                                     className="btn btn-sm btn-outline-danger"
-                                                    onClick={(e) => {
-                                                        if (!confirm('Are you sure you want to delete this reminder log?')) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
+                                                    onClick={() => handleDeleteClick(reminder.id)}
                                                 >
                                                     Delete
-                                                </Link>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -100,6 +108,16 @@ export default function Index({ invoice, reminders }) {
                     {/* Pagination can be added here if needed */}
                 </div>
             </div>
+
+            <ConfirmModal
+                show={confirmState.isOpen}
+                title="Delete Reminder"
+                message="Are you sure you want to delete this reminder log? This action cannot be undone."
+                confirmText="Delete"
+                confirmVariant="danger"
+                onConfirm={handleConfirmDelete}
+                onClose={() => setConfirmState({ isOpen: false, reminderId: null })}
+            />
         </AuthenticatedLayout>
     );
 }

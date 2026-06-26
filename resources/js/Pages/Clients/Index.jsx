@@ -1,10 +1,24 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import Breadcrumb from '@/Components/Breadcrumb';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { useState } from 'react';
 
 export default function Index({ clients, filters }) {
     const [search, setSearch] = useState(filters.search || '');
+    const [confirmState, setConfirmState] = useState({ isOpen: false, clientId: null });
+
+    const handleDeleteClick = (clientId) => {
+        setConfirmState({ isOpen: true, clientId });
+    };
+
+    const handleConfirmDelete = () => {
+        if (confirmState.clientId) {
+            router.delete(route('clients.destroy', confirmState.clientId), {
+                onFinish: () => setConfirmState({ isOpen: false, clientId: null }),
+            });
+        }
+    };
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -73,19 +87,12 @@ export default function Index({ clients, filters }) {
                                                 >
                                                     Edit
                                                 </Link>
-                                                <Link 
-                                                    href={route('clients.destroy', client.id)} 
-                                                    method="delete"
-                                                    as="button"
+                                                <button
                                                     className="btn btn-sm btn-outline-danger"
-                                                    onClick={(e) => {
-                                                        if (!confirm('Are you sure you want to delete this client?')) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
+                                                    onClick={() => handleDeleteClick(client.id)}
                                                 >
                                                     Delete
-                                                </Link>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -115,6 +122,15 @@ export default function Index({ clients, filters }) {
                     )}
                 </div>
             </div>
+            <ConfirmModal
+                show={confirmState.isOpen}
+                title="Delete Client"
+                message="Are you sure you want to delete this client? This action cannot be undone."
+                confirmText="Delete"
+                confirmVariant="danger"
+                onConfirm={handleConfirmDelete}
+                onClose={() => setConfirmState({ isOpen: false, clientId: null })}
+            />
         </AuthenticatedLayout>
     );
 }

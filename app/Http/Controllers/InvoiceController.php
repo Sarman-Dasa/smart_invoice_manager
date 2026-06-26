@@ -16,9 +16,11 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $status = $request->input('status');
 
         $invoices = $request->user()->invoices()
             ->with('client:id,name,company_name') // Eager load client
+            ->withCount('reminderLogs')
             ->when($search, function ($query, $search) {
                 $query->where(function($q) use ($search) {
                     $q->where('invoice_number', 'like', "%{$search}%")
@@ -28,13 +30,19 @@ class InvoiceController extends Controller
                       });
                 });
             })
+            ->when($status, function ($query, $status) {
+                if ($status === 'paid') return $query->paid();
+                if ($status === 'pending') return $query->pending();
+                if ($status === 'overdue') return $query->overdue();
+                return $query;
+            })
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
         return Inertia::render('Invoices/Index', [
             'invoices' => $invoices,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -64,9 +72,7 @@ class InvoiceController extends Controller
      */
     public function edit(Request $request, Invoice $invoice)
     {
-        if ($invoice->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('view', $invoice);
 
         return Inertia::render('Invoices/Edit', [
             'invoice' => $invoice,
@@ -79,9 +85,7 @@ class InvoiceController extends Controller
      */
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
     {
-        if ($invoice->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('update', $invoice);
 
         $invoice->update($request->validated());
 
@@ -94,9 +98,7 @@ class InvoiceController extends Controller
      */
     public function markAsPaid(Request $request, Invoice $invoice)
     {
-        if ($invoice->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('update', $invoice);
 
         $invoice->update(['paid_at' => now()]);
 
@@ -109,9 +111,7 @@ class InvoiceController extends Controller
      */
     public function destroy(Request $request, Invoice $invoice)
     {
-        if ($invoice->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('delete', $invoice);
 
         $invoice->delete();
 

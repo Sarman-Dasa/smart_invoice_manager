@@ -67,12 +67,24 @@ class GeminiAiService implements AiGeneratorInterface
 
             if ($response->failed()) {
                 $errorBody = $response->body();
-                Log::error('Gemini API Streaming Error', ['status' => $response->status(), 'response' => $errorBody]);
+                $status = $response->status();
+                Log::error('Gemini API Streaming Error', ['status' => $status, 'response' => $errorBody]);
                 
                 $errorMessage = 'Failed to stream content from Gemini API.';
-                $decoded = json_decode($errorBody, true);
-                if (isset($decoded['error']['message'])) {
-                    $errorMessage = $decoded['error']['message'];
+                
+                if ($status === 400) {
+                    $errorMessage = 'Invalid API Request. Please check your prompt or API key configuration.';
+                } elseif ($status === 401 || $status === 403) {
+                    $errorMessage = 'Invalid API key or authentication failed.';
+                } elseif ($status === 429) {
+                    $errorMessage = 'API quota exceeded. Please try again later.';
+                } elseif ($status === 408 || $status === 504 || $status === 503) {
+                    $errorMessage = 'Network timeout or service unavailable. Please try again.';
+                } else {
+                    $decoded = json_decode($errorBody, true);
+                    if (isset($decoded['error']['message'])) {
+                        $errorMessage = $decoded['error']['message'];
+                    }
                 }
                 
                 throw new AiGenerationException($errorMessage);

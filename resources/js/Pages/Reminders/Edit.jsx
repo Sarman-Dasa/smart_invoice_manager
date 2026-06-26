@@ -24,7 +24,7 @@ export default function Edit({ invoice, reminder }) {
                     <Breadcrumb items={[
                         { label: 'Dashboard', href: route('dashboard') },
                         { label: 'Invoices', href: route('invoices.index') },
-                        { label: `Invoice ${invoice.invoice_number}`, href: route('invoices.show', invoice.id) || '#' },
+                        { label: `Invoice ${invoice.invoice_number}`, href: route('invoices.edit', invoice.id) },
                         { label: 'Reminders', href: route('invoices.reminders.index', invoice.id) },
                         { label: 'Edit Draft' }
                     ]} />

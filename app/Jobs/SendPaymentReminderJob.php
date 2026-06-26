@@ -55,9 +55,8 @@ class SendPaymentReminderJob implements ShouldQueue
         Mail::to($this->invoice->client->email)
             ->send(new PaymentReminderMail($this->invoice, $this->reminderLog->content));
 
-        // Note: we might update sent_at here, or in the controller before dispatching.
-        // It's usually better in the job so it only updates if sending succeeds.
-        $this->reminderLog->update(['sent_at' => now()]);
+        // The sent_at timestamp is now updated immediately in the Controller
+        // for optimistic UI updates. We do not need to update it here.
     }
 
     /**

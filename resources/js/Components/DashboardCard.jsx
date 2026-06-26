@@ -1,40 +1,53 @@
 import { Link } from '@inertiajs/react';
 
-export default function DashboardCard({ title, value, icon, color = 'primary', linkText, linkHref, highlightMessage, isDanger = false }) {
-    return (
-        <div className={`card shadow-sm border-0 border-start border-${color} border-4 h-100 ${isDanger ? 'bg-danger bg-opacity-10' : ''}`}>
-            <div className="card-body d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                    <h6 className={`text-uppercase fw-semibold mb-0 ${isDanger ? 'text-danger' : 'text-muted'}`}>
-                        {title}
-                    </h6>
-                    {icon && (
-                        <div className={`text-${color} bg-${color} bg-opacity-10 rounded p-2 d-flex align-items-center justify-content-center`} style={{ width: '40px', height: '40px' }}>
-                            <i className={`bi ${icon} fs-5`}></i>
-                        </div>
-                    )}
-                </div>
+export default function DashboardCard({ title, value, icon, color = 'primary', linkHref, highlightMessage, isDanger = false }) {
+    const CardContent = () => (
+        <div className={`card shadow-sm border-0 border-start border-${color} border-4 h-100 position-relative overflow-hidden ${isDanger ? 'bg-danger bg-opacity-10' : 'bg-white'} card-hover-effect`}>
+            {icon && (
+                <i className={`bi ${icon} position-absolute text-${color}`} 
+                   style={{ 
+                       bottom: '-10px', 
+                       right: '10px', 
+                       fontSize: '5rem', 
+                       opacity: '0.1', 
+                       zIndex: '0' 
+                   }}>
+                </i>
+            )}
+            
+            <div className="card-body position-relative z-1 d-flex flex-column p-3 p-xl-4">
+                <h6 className={`text-uppercase fw-semibold mb-2 ${isDanger ? 'text-danger' : 'text-muted'}`} style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+                    {title}
+                </h6>
                 
-                <h2 className={`display-6 fw-bold mb-1 ${isDanger ? 'text-danger' : `text-${color}`}`}>
+                <h2 className={`display-5 fw-bold mb-0 ${isDanger ? 'text-danger' : `text-${color}`}`} style={{ lineHeight: '1' }}>
                     {value}
                 </h2>
                 
-                {highlightMessage && (
-                    <small className={`${isDanger ? 'text-danger' : `text-${color}`} d-block mt-1 fw-medium`}>
+                {highlightMessage ? (
+                    <small className={`${isDanger ? 'text-danger' : `text-${color}`} d-block mt-2 fw-medium`}>
                         {highlightMessage}
                     </small>
+                ) : (
+                    <div className="mt-2" style={{ height: '21px' }}>
+                        {linkHref && (
+                            <span className={`text-${color} small fw-medium`}>
+                                View Details &rarr;
+                            </span>
+                        )}
+                    </div>
                 )}
-
-                <div className="mt-auto pt-3">
-                    {linkHref && linkText ? (
-                        <Link href={linkHref} className={`text-decoration-none btn btn-sm btn-outline-${color} w-100`}>
-                            {linkText} &rarr;
-                        </Link>
-                    ) : (
-                        <div style={{ height: '31px' }}></div> /* Spacer to match button height */
-                    )}
-                </div>
             </div>
         </div>
     );
+
+    if (linkHref) {
+        return (
+            <Link href={linkHref} className="text-decoration-none d-block h-100">
+                <CardContent />
+            </Link>
+        );
+    }
+
+    return <CardContent />;
 }

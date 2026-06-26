@@ -27,26 +27,25 @@ class PromptBuilder
             $daysOverdue = now()->diffInDays($invoice->due_date);
         }
 
-        $context = "You are a professional, polite, yet firm AI accounting assistant.";
-        $task = "Write a short email draft to remind a client about an invoice.";
+        $config = config('ai_prompts.payment_reminder');
+
+        $context = $config['context'];
+        $task = $config['task'];
         
-        $details = "
-        - Client: {$target}
-        - Invoice Number: {$invoiceNumber}
-        - Amount Due: \${$amount}
-        - Due Date: {$dueDate}";
+        $details = str_replace(
+            ['{{ target }}', '{{ invoiceNumber }}', '{{ amount }}', '{{ dueDate }}'],
+            [$target, $invoiceNumber, $amount, $dueDate],
+            $config['details_template']
+        );
 
         if ($daysOverdue > 0) {
-            $details .= "\n- Note: The invoice is currently {$daysOverdue} days overdue.";
+            $note = str_replace('{{ daysOverdue }}', $daysOverdue, $config['overdue_note']);
+            $details .= "\n" . $note;
         } else {
-            $details .= "\n- Note: The invoice is due soon.";
+            $details .= "\n" . $config['due_soon_note'];
         }
 
-        $constraints = "
-        - Keep it under 150 words.
-        - Do not include subject lines.
-        - Use a professional and polite tone.
-        - Sign off as 'Your Smart Invoice Manager'.";
+        $constraints = $config['constraints'];
 
         return "{$context}\n\nTask: {$task}\n\nDetails: {$details}\n\nConstraints: {$constraints}";
     }

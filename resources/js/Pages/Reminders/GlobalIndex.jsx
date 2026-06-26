@@ -1,8 +1,23 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import Breadcrumb from '@/Components/Breadcrumb';
+import ConfirmModal from '@/Components/ConfirmModal';
+import { useState } from 'react';
 
 export default function GlobalIndex({ reminders }) {
+    const [confirmState, setConfirmState] = useState({ isOpen: false, reminderId: null, invoiceId: null });
+
+    const handleDeleteClick = (reminderId, invoiceId) => {
+        setConfirmState({ isOpen: true, reminderId, invoiceId });
+    };
+
+    const handleConfirmDelete = () => {
+        if (confirmState.reminderId && confirmState.invoiceId) {
+            router.delete(route('invoices.reminders.destroy', [confirmState.invoiceId, confirmState.reminderId]), {
+                onFinish: () => setConfirmState({ isOpen: false, reminderId: null, invoiceId: null }),
+            });
+        }
+    };
     return (
         <AuthenticatedLayout>
             <Head title="Reminder History" />
@@ -44,7 +59,7 @@ export default function GlobalIndex({ reminders }) {
                                         <tr key={reminder.id}>
                                             <td className="px-3">{new Date(reminder.created_at).toLocaleString()}</td>
                                             <td>
-                                                <Link href={route('invoices.show', reminder.invoice.id)} className="text-decoration-none fw-medium">
+                                                <Link href={route('invoices.edit', reminder.invoice.id)} className="text-decoration-none fw-medium">
                                                     {reminder.invoice.invoice_number}
                                                 </Link>
                                             </td>
@@ -77,19 +92,12 @@ export default function GlobalIndex({ reminders }) {
                                                         </Link>
                                                     </>
                                                 )}
-                                                <Link 
-                                                    href={route('invoices.reminders.destroy', [reminder.invoice.id, reminder.id])} 
-                                                    method="delete"
-                                                    as="button"
+                                                <button
                                                     className="btn btn-sm btn-outline-danger"
-                                                    onClick={(e) => {
-                                                        if (!confirm('Are you sure you want to delete this reminder log?')) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
+                                                    onClick={() => handleDeleteClick(reminder.id, reminder.invoice.id)}
                                                 >
                                                     Delete
-                                                </Link>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -120,6 +128,16 @@ export default function GlobalIndex({ reminders }) {
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                show={confirmState.isOpen}
+                title="Delete Reminder"
+                message="Are you sure you want to delete this reminder log? This action cannot be undone."
+                confirmText="Delete"
+                confirmVariant="danger"
+                onConfirm={handleConfirmDelete}
+                onClose={() => setConfirmState({ isOpen: false, reminderId: null, invoiceId: null })}
+            />
         </AuthenticatedLayout>
     );
 }

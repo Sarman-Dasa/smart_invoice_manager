@@ -59,9 +59,7 @@ class ClientController extends Controller
      */
     public function edit(Request $request, Client $client)
     {
-        if ($client->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('view', $client);
 
         return Inertia::render('Clients/Edit', [
             'client' => $client,
@@ -73,9 +71,7 @@ class ClientController extends Controller
      */
     public function update(UpdateClientRequest $request, Client $client)
     {
-        if ($client->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('update', $client);
 
         $client->update($request->validated());
 
@@ -88,9 +84,7 @@ class ClientController extends Controller
      */
     public function destroy(Request $request, Client $client)
     {
-        if ($client->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('delete', $client);
 
         $client->delete();
 

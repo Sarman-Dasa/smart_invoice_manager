@@ -29,35 +29,43 @@ export default function Dashboard({ stats, recentInvoices, recentReminders }) {
             </div>
 
             {/* Statistics Cards */}
-            <div className="row g-4 mb-5">
-                <div className="col-12 col-sm-6 col-xl-3">
+            <div className="row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-4 mb-5">
+                <div className="col">
                     <DashboardCard 
                         title="Total Clients" 
                         value={stats.clients.total} 
                         icon="bi-people"
-                        linkText="View All Clients"
                         linkHref={route('clients.index')}
                     />
                 </div>
-                <div className="col-12 col-sm-6 col-xl-3">
+                <div className="col">
                     <DashboardCard 
                         title="Total Invoices" 
                         value={stats.invoices.total} 
                         icon="bi-receipt"
                         color="info"
-                        linkText="View All Invoices"
                         linkHref={route('invoices.index')}
                     />
                 </div>
-                <div className="col-12 col-sm-6 col-xl-3">
+                <div className="col">
+                    <DashboardCard 
+                        title="Pending Invoices" 
+                        value={stats.invoices.pending} 
+                        icon="bi-hourglass-split"
+                        color="warning"
+                        linkHref={route('invoices.index', { status: 'pending' })}
+                    />
+                </div>
+                <div className="col">
                     <DashboardCard 
                         title="Paid Invoices" 
                         value={stats.invoices.paid} 
                         icon="bi-check-circle"
                         color="success"
+                        linkHref={route('invoices.index', { status: 'paid' })}
                     />
                 </div>
-                <div className="col-12 col-sm-6 col-xl-3">
+                <div className="col">
                     <DashboardCard 
                         title="Overdue Invoices" 
                         value={stats.invoices.overdue} 
@@ -65,6 +73,7 @@ export default function Dashboard({ stats, recentInvoices, recentReminders }) {
                         color="danger"
                         isDanger={true}
                         highlightMessage={stats.invoices.overdue > 0 ? 'Requires attention' : null}
+                        linkHref={route('invoices.index', { status: 'overdue' })}
                     />
                 </div>
             </div>
@@ -88,7 +97,6 @@ export default function Dashboard({ stats, recentInvoices, recentReminders }) {
                                                 <th className="border-0">Client</th>
                                                 <th className="border-0">Amount</th>
                                                 <th className="border-0">Status</th>
-                                                <th className="px-3 border-0 text-end">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -101,11 +109,6 @@ export default function Dashboard({ stats, recentInvoices, recentReminders }) {
                                                         <span className={`badge bg-${invoice.status === 'Paid' ? 'success' : invoice.status === 'Overdue' ? 'danger' : 'warning text-dark'}`}>
                                                             {invoice.status}
                                                         </span>
-                                                    </td>
-                                                    <td className="px-3 text-end">
-                                                        <Link href={route('invoices.show', invoice.id)} className="btn btn-sm btn-outline-secondary">
-                                                            View
-                                                        </Link>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -145,7 +148,7 @@ export default function Dashboard({ stats, recentInvoices, recentReminders }) {
                                             {recentReminders.map((log) => (
                                                 <tr key={log.id}>
                                                     <td className="px-3">
-                                                        <Link href={route('invoices.show', log.invoice_id)} className="text-decoration-none fw-medium">
+                                                        <Link href={route('invoices.edit', log.invoice_id)} className="text-decoration-none fw-medium">
                                                             {log.invoice.invoice_number}
                                                         </Link>
                                                     </td>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Invoice extends Model
 {
@@ -28,11 +29,12 @@ class Invoice extends Model
         'status'
     ];
 
-    protected static function booted()
+    public function save(array $options = [])
     {
-        static::creating(function ($invoice) {
-            if (empty($invoice->invoice_number)) {
-                $lastInvoice = self::query()->where('user_id', $invoice->user_id)
+        if (!$this->exists && empty($this->invoice_number)) {
+            return DB::transaction(function () use ($options) {
+                $lastInvoice = self::query()->where('user_id', $this->user_id)
+                    ->lockForUpdate()
                     ->latest('id')
                     ->first();
 
@@ -42,9 +44,42 @@ class Invoice extends Model
                     $nextId = 1;
                 }
 
-                $invoice->invoice_number = 'INV-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-            }
-        });
+                $this->invoice_number = 'INV-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+
+                return parent::save($options);
+            });
+        }
+
+        return parent::save($options);
+    }
+
+    /**
+     * Scope a query to only include paid invoices.
+     */
+    public function scopePaid($query)
+    {
+        return $query->whereNotNull('paid_at');
+    }
+
+    /**
+     * Scope a query to only include pending invoices (not paid, not overdue).
+     */
+    public function scopePending($query)
+    {
+        return $query->whereNull('paid_at')
+                     ->where(function ($q) {
+                         $q->where('due_date', '>=', now()->toDateString())
+                           ->orWhereNull('due_date');
+                     });
+    }
+
+    /**
+     * Scope a query to only include overdue invoices.
+     */
+    public function scopeOverdue($query)
+    {
+        return $query->whereNull('paid_at')
+                     ->where('due_date', '<', now()->toDateString());
     }
 
     public function getStatusAttribute()
@@ -53,7 +88,7 @@ class Invoice extends Model
             return 'Paid';
         }
 
-        if ($this->due_date && $this->due_date->isPast()) {
+        if ($this->due_date && $this->due_date->lt(today())) {
             return 'Overdue';
         }
 

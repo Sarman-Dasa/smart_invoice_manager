@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\ReminderLog;
 use App\Services\AI\PromptBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AiController extends Controller
@@ -18,9 +19,7 @@ class AiController extends Controller
         PromptBuilder $promptBuilder
     ) {
         // Ensure user owns invoice
-        if ($invoice->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        Gate::authorize('view', $invoice);
 
         $prompt = $promptBuilder->buildPaymentReminder($invoice);
 
@@ -47,16 +46,16 @@ class AiController extends Controller
                     flush();
                 }
 
-                // If fully completed and not aborted, save the draft
-                if (!connection_aborted() && !empty($fullContent)) {
-                    ReminderLog::create([
-                        'invoice_id' => $invoice->id,
-                        'content' => $fullContent,
-                    ]);
+                // Stream fully completed without aborting
+                if (!connection_aborted()) {
+                    if (empty(trim($fullContent))) {
+                        echo "event: error\ndata: " . json_encode(['message' => 'Empty AI response received. Please try again.']) . "\n\n";
+                        flush();
+                    } else {
+                        echo "event: end\ndata: {}\n\n";
+                        flush();
+                    }
                 }
-
-                echo "event: end\ndata: {}\n\n";
-                flush();
 
             } catch (\Exception $e) {
                 echo "event: error\ndata: " . json_encode(['message' => 'AI Generation Failed: ' . $e->getMessage()]) . "\n\n";

@@ -34,9 +34,7 @@ class ReminderLogController extends Controller
     public function index(Request $request, Invoice $invoice)
     {
         // Ensure the user owns this invoice
-        if ($invoice->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        $this->authorize('view', $invoice);
 
         $reminders = $invoice->reminderLogs()->latest()->paginate(10);
 
@@ -47,13 +45,36 @@ class ReminderLogController extends Controller
     }
 
     /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request, Invoice $invoice)
+    {
+        $this->authorize('update', $invoice);
+
+        $validated = $request->validate([
+            'content' => ['required', 'string'],
+            'send_email' => ['boolean']
+        ]);
+
+        $reminder = $invoice->reminderLogs()->create([
+            'content' => $validated['content'],
+            'sent_at' => $request->boolean('send_email') ? now() : null,
+        ]);
+
+        if ($request->boolean('send_email')) {
+            \App\Jobs\SendPaymentReminderJob::dispatch($invoice, $reminder);
+            return back()->with('success', 'Reminder saved and queued for sending.');
+        }
+
+        return back()->with('success', 'Reminder drafted successfully.');
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Request $request, Invoice $invoice, ReminderLog $reminder)
     {
-        if ($invoice->user_id !== $request->user()->id || $reminder->invoice_id !== $invoice->id) {
-            abort(403);
-        }
+        $this->authorize('view', [$reminder, $invoice]);
 
         // Only allow editing if not sent yet
         if ($reminder->sent_at !== null) {
@@ -72,9 +93,7 @@ class ReminderLogController extends Controller
      */
     public function update(Request $request, Invoice $invoice, ReminderLog $reminder)
     {
-        if ($invoice->user_id !== $request->user()->id || $reminder->invoice_id !== $invoice->id) {
-            abort(403);
-        }
+        $this->authorize('update', [$reminder, $invoice]);
 
         if ($reminder->sent_at !== null) {
             return back()->with('error', 'Cannot edit a sent reminder.');
@@ -95,9 +114,7 @@ class ReminderLogController extends Controller
      */
     public function destroy(Request $request, Invoice $invoice, ReminderLog $reminder)
     {
-        if ($invoice->user_id !== $request->user()->id || $reminder->invoice_id !== $invoice->id) {
-            abort(403);
-        }
+        $this->authorize('delete', [$reminder, $invoice]);
 
         $reminder->delete();
 
@@ -110,17 +127,17 @@ class ReminderLogController extends Controller
      */
     public function send(Request $request, Invoice $invoice, ReminderLog $reminder)
     {
-        if ($invoice->user_id !== $request->user()->id || $reminder->invoice_id !== $invoice->id) {
-            abort(403);
-        }
+        $this->authorize('send', [$reminder, $invoice]);
 
         if ($reminder->sent_at !== null) {
             return back()->with('error', 'This reminder has already been sent.');
         }
 
+        // Update the sent_at immediately for optimistic UI updates
+        $reminder->update(['sent_at' => now()]);
+
         \App\Jobs\SendPaymentReminderJob::dispatch($invoice, $reminder);
 
-        return redirect()->route('invoices.reminders.index', $invoice->id)
-            ->with('success', 'Payment reminder queued for sending.');
+        return back()->with('success', 'Payment reminder queued for sending.');
     }
 }
