@@ -1,9 +1,11 @@
 #!/bin/sh
 
 echo "Running migrations..."
-
 php artisan migrate --force
 
-echo "Starting Apache..."
+echo "Creating log files..."
+touch /var/www/html/storage/logs/worker.log
+chown -R www-data:www-data /var/www/html/storage
 
-exec apache2-foreground
+echo "Starting Supervisor..."
+exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf

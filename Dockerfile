@@ -49,6 +49,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
+    supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         pdo \
@@ -98,6 +99,7 @@ RUN php artisan view:clear || true
 
 EXPOSE 80
 
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY start.sh /usr/local/bin/start.sh
 
 RUN chmod +x /usr/local/bin/start.sh
