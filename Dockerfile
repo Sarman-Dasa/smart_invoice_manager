@@ -98,4 +98,9 @@ RUN php artisan view:clear || true
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+COPY start.sh /usr/local/bin/start.sh
+
+RUN chmod +x /usr/local/bin/start.sh
+
+CMD ["/usr/local/bin/start.sh"]
+# CMD ["apache2-foreground"]
