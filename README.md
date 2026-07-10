@@ -35,7 +35,7 @@ What sets this project apart is its **AI-Powered Payment Reminder System**. Util
 - **Google Gemini API**: Advanced LLM for generating contextual reminder drafts.
 
 ### Frontend
-- **React 19**: Modern JavaScript library for building interactive user interfaces.
+- **React 18**: Modern JavaScript library for building interactive user interfaces.
 - **Inertia.js v2**: Glues Laravel and React together without building an API, using standard routing.
 - **Bootstrap 5.3**: Responsive, mobile-first CSS framework for a clean, professional aesthetic.
 
@@ -201,7 +201,3 @@ If you utilized Database Seeders, you can log in using the following:
 └── tests/
     └── Feature/          # Comprehensive PHPUnit feature tests
 ```
-
-## 14. Future Enhancements
-
-- **Cron Job Automation**: Automatically generate and dispatch reminders for invoices hitting their due date using Laravel Task Scheduling.
